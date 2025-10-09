@@ -1,0 +1,74 @@
+package oop;
+import java.util.Scanner;
+
+	public class first {
+	    public static void main(String[] args) {
+	        Scanner sc = new Scanner(System.in);
+	        String userChoice;
+
+	        System.out.println("Welcome to the Java Calculator!");
+
+	        do {
+	            try {
+	                // Step 1: Read first number
+	                System.out.print("Enter first number: ");
+	                double number1 = Double.parseDouble(sc.nextLine());
+
+	                // Step 2: Read operator
+	                System.out.print("Enter an operator (+, -, *, /, %): ");
+	                String operator = sc.nextLine();
+
+	                // Step 3: Read second number
+	                System.out.print("Enter second number: ");
+	                double number2 = Double.parseDouble(sc.nextLine());
+
+	                double result = 0;
+	                boolean validOperation = true;
+
+	                // Step 4: Perform operation using conditional logic
+	                if (operator.equals("+")) {
+	                    result = number1 + number2;
+	                } else if (operator.equals("-")) {
+	                    result = number1 - number2;
+	                } else if (operator.equals("*")) {
+	                    result = number1 * number2;
+	                } else if (operator.equals("/")) {
+	                    if (number2 != 0) {
+	                        result = number1 / number2;
+	                    } else {
+	                        System.out.println("Error: Division by zero is not allowed.");
+	                        validOperation = false;
+	                    }
+	                } else if (operator.equals("%")) {
+	                    if (number2 != 0) {
+	                        result = number1 % number2;
+	                    } else {
+	                        System.out.println("Error: Modulo by zero is not allowed.");
+	                        validOperation = false;
+	                    }
+	                } else {
+	                    System.out.println("Error: Invalid operator.");
+	                    validOperation = false;
+	                }
+
+	                // Step 5: Display result if valid
+	                if (validOperation) {
+	                    System.out.println("Result: " + result);
+	                }
+
+	            } catch (NumberFormatException e) {
+	                System.out.println("Error: Invalid number format. Please enter numeric values.");
+	            } catch (Exception e) {
+	                System.out.println("Unexpected error: " + e.getMessage());
+	            }
+
+	            // Step 6: Ask user if they want to continue
+	            System.out.print("Do you want to perform another calculation? (Y/N): ");
+	            userChoice = sc.nextLine();
+
+	        } while (!userChoice.equalsIgnoreCase("N"));
+
+	        System.out.println("Thank you for using the calculator.");
+	        sc.close();
+	    }
+	}
