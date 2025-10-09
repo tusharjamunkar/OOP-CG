@@ -1,0 +1,85 @@
+package oop;
+import java.util.Scanner;
+
+	public class HotelBookingSystem {
+	    public static void main(String[] args) {
+	        Scanner sc = new Scanner(System.in);
+
+	        // Step 2: Initialize 2D array for hotel rooms
+	        int floors = 3;     // You can change the number of floors
+	        int roomsPerFloor = 5; // You can change the number of rooms per floor
+	        int[][] rooms = new int[floors][roomsPerFloor]; // 0 = Available, 1 = Booked
+
+	        boolean running = true;
+
+	        System.out.println("Welcome to the Hotel Room Booking System!");
+
+	        while (running) {
+	            // Step 3.1: Display Main Menu
+	            System.out.println("\nMain Menu:");
+	            System.out.println("1. View Rooms");
+	            System.out.println("2. Book a Room");
+	            System.out.println("3. Exit");
+	            System.out.print("Enter your choice: ");
+
+	            String input = sc.nextLine();
+
+	            switch (input) {
+	                case "1":
+	                    // Step 3.3: View Rooms
+	                    System.out.println("\nRoom Availability:");
+	                    for (int f = 0; f < floors; f++) {
+	                        System.out.print("Floor " + (f + 1) + ": ");
+	                        for (int r = 0; r < roomsPerFloor; r++) {
+	                            if (rooms[f][r] == 0) {
+	                                System.out.print("[Room " + (r + 1) + ": Available] ");
+	                            } else {
+	                                System.out.print("[Room " + (r + 1) + ": Booked] ");
+	                            }
+	                        }
+	                        System.out.println();
+	                    }
+	                    break;
+
+	                case "2":
+	                    // Step 3.4: Book a Room
+	                    try {
+	                        System.out.print("Enter floor number (1 to " + floors + "): ");
+	                        int floor = Integer.parseInt(sc.nextLine()) - 1;
+
+	                        System.out.print("Enter room number (1 to " + roomsPerFloor + "): ");
+	                        int room = Integer.parseInt(sc.nextLine()) - 1;
+
+	                        if (floor >= 0 && floor < floors && room >= 0 && room < roomsPerFloor) {
+	                            if (rooms[floor][room] == 0) {
+	                                rooms[floor][room] = 1;
+	                                System.out.println("Room successfully booked.");
+	                            } else {
+	                                System.out.println("Room is already booked.");
+	                            }
+	                        } else {
+	                            System.out.println("Invalid floor or room number.");
+	                        }
+	                    } catch (NumberFormatException e) {
+	                        System.out.println("Invalid input. Please enter numeric values.");
+	                    }
+	                    break;
+
+	                case "3":
+	                    // Step 3.5: Exit
+	                    running = false;
+	                    break;
+
+	                default:
+	                    // Step 3.6: Invalid choice
+	                    System.out.println("Invalid choice. Please try again.");
+	            }
+	        }
+
+	        // Step 4: Exit message
+	        System.out.println("\nThank you for using the hotel booking system.");
+	        sc.close();
+	    }
+	}
+
+
