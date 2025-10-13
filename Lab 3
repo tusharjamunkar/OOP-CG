@@ -1,0 +1,33 @@
+class Student {
+    int rollNo;
+    int marks;
+
+    void inputDetails(int r, int m) {
+        rollNo = r;
+        marks = m;
+    }
+    void displayDetails() {
+        System.out.println("Roll Number: " + rollNo);
+        System.out.println("Marks: " + marks);
+    }
+}
+class Result extends Student {
+    void calculateGrade() {
+        if (marks >= 90)
+            System.out.println("Grade: A");
+        else if (marks >= 75)
+            System.out.println("Grade: B");
+        else if (marks >= 50)
+            System.out.println("Grade: C");
+        else
+            System.out.println("Grade: Fail");
+    }
+}
+public class SingleInheritanceExample {
+    public static void main(String[] args) {
+        Result student1 = new Result();
+        student1.inputDetails(101, 82);
+        student1.displayDetails();
+        student1.calculateGrade();
+    }
+}
