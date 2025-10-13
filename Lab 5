@@ -1,0 +1,194 @@
+
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.time.LocalTime;
+
+class Message implements Comparable<Message> {
+    final String from;
+    final String to;
+    final String text;
+    final int priority;
+    final long time;
+
+    Message(String from, String to, String text, int priority) {
+        this.from = from;
+        this.to = to;
+        this.text = text;
+        this.priority = priority;
+        this.time = System.currentTimeMillis();
+    }
+
+    @Override
+    public int compareTo(Message o) {
+        // Higher priority first; tie-breaker: earlier time
+        int p = Integer.compare(o.priority, this.priority);
+        return (p != 0) ? p : Long.compare(this.time, o.time);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[%s -> %s] (p=%d) %s", from, to, priority, text);
+    }
+}
+
+class MessageRouter {
+    private final PriorityBlockingQueue<Message> queue = new PriorityBlockingQueue<>();
+
+    void send(Message m) {
+        queue.offer(m);
+    }
+
+    Message pollFor(String recipient) {
+        for (Message m : queue) {
+            if (m.to.equals(recipient)) {
+                if (queue.remove(m)) return m;
+            }
+        }
+        return null;
+    }
+
+    Message takeAny() throws InterruptedException {
+        return queue.take();
+    }
+
+    boolean isEmpty() {
+        return queue.isEmpty();
+    }
+}
+
+class UserThread extends Thread {
+    private final String name;
+    private final MessageRouter router;
+    private final AtomicBoolean running = new AtomicBoolean(true);
+    private final AtomicBoolean paused = new AtomicBoolean(false);
+    private final Object pauseLock = new Object();
+
+    UserThread(String name, MessageRouter router) {
+        super(name);
+        this.name = name;
+        this.router = router;
+    }
+
+    public void run() {
+        try {
+            while (running.get()) {
+                synchronized (pauseLock) {
+                    while (paused.get()) {
+                        pauseLock.wait();
+                    }
+                }
+
+                Message m = router.pollFor(name);
+                if (m != null) {
+                    processMessage(m);
+                    continue;
+                }
+
+                Thread.sleep(200);
+            }
+        } catch (InterruptedException e) {
+]
+            Thread.currentThread().interrupt();
+        } finally {
+            System.out.println(name + " stopped.");
+        }
+    }
+
+    private void processMessage(Message m) throws InterruptedException {
+        System.out.println(LocalTime.now() + " " + name + " received: " + m);
+        // Simulate processing time; high-priority messages handled faster
+        Thread.sleep(Math.max(50, 300 - (m.priority * 40)));
+    }
+
+    // Send message to someone
+    void sendMessage(String to, String text, int priority) {
+        router.send(new Message(name, to, text, priority));
+    }
+
+    // Pause the thread (safe)
+    void pauseThread() {
+        paused.set(true);
+        System.out.println(name + " paused.");
+    }
+
+    // Resume the thread (safe)
+    void resumeThread() {
+        synchronized (pauseLock) {
+            paused.set(false);
+            pauseLock.notifyAll();
+        }
+        System.out.println(name + " resumed.");
+    }
+
+    // Stop the thread (safe)
+    void stopThread() {
+        running.set(false);
+        // Also resume if paused so it can reach termination
+        resumeThread();
+        this.interrupt();
+    }
+}
+
+// Demo main
+public class ChatSimulation {
+    public static void main(String[] args) {
+        MessageRouter router = new MessageRouter();
+
+        UserThread alice = new UserThread("Alice", router);
+        UserThread bob = new UserThread("Bob", router);
+        UserThread carol = new UserThread("Carol", router);
+
+        // Set priorities (1..10). Higher priority threads get more CPU preference from JVM.
+        alice.setPriority(Thread.NORM_PRIORITY + 1); // slightly higher
+        bob.setPriority(Thread.NORM_PRIORITY);
+        carol.setPriority(Thread.NORM_PRIORITY - 1);
+
+        System.out.println("Starting users...");
+        alice.start();
+        bob.start();
+        carol.start();
+
+        // Send messages of various priorities
+        alice.sendMessage("Bob", "Hi Bob, normal message", 3);
+        bob.sendMessage("Alice", "Hello Alice, important!", 7);
+        carol.sendMessage("Alice", "FYI", 2);
+        alice.sendMessage("Carol", "Urgent: check this", 9); // high-priority
+
+        // Demonstrate isAlive()
+        System.out.println("Are threads alive? Alice=" + alice.isAlive() +
+                           " Bob=" + bob.isAlive() + " Carol=" + carol.isAlive());
+
+        // Pause Bob for a while
+        sleepMs(800);
+        bob.pauseThread();
+
+        // While Bob is paused, send him high priority messages (they should queue up)
+        alice.sendMessage("Bob", "High priority while you're paused", 10);
+        carol.sendMessage("Bob", "Another important", 8);
+
+        // After some time resume Bob
+        sleepMs(1500);
+        bob.resumeThread();
+
+        // Demonstrate join(): wait for a bit then stop threads in order, joining to ensure sync
+        sleepMs(1200);
+
+        System.out.println("Stopping Alice...");
+        alice.stopThread();
+        try { alice.join(); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+
+        System.out.println("Stopping Bob...");
+        bob.stopThread();
+        try { bob.join(); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+
+        System.out.println("Stopping Carol...");
+        carol.stopThread();
+        try { carol.join(); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+
+        System.out.println("All users stopped. Exiting.");
+    }
+
+    private static void sleepMs(long ms) {
+        try { Thread.sleep(ms); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+    }
+}
