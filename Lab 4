@@ -1,0 +1,93 @@
+
+import java.util.Scanner;
+
+class ATM {
+    private double balance;
+
+    public ATM(double initialBalance) {
+        balance = initialBalance;
+    }
+
+    public void checkBalance() {
+        System.out.println("Your current balance: ₹" + balance);
+    }
+
+    public void deposit(double amount) {
+        try {
+            if (amount <= 0)
+                throw new IllegalArgumentException("Deposit amount must be positive!");
+            balance += amount;
+            System.out.println("₹" + amount + " deposited successfully.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            System.out.println("Deposit operation completed.\n");
+        }
+    }
+
+    public void withdraw(double amount) {
+        try {
+            if (amount <= 0)
+                throw new IllegalArgumentException("Withdrawal amount must be positive!");
+            if (amount > balance)
+                throw new ArithmeticException("Insufficient funds!");
+            balance -= amount;
+            System.out.println("₹" + amount + " withdrawn successfully.");
+        } catch (IllegalArgumentException | ArithmeticException e) {
+            System.out.println("Error: " + e.getMessage());
+        } finally {
+            System.out.println("Withdrawal operation completed.\n");
+        }
+    }
+}
+
+public class ATMSimulation {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        ATM atm = new ATM(5000);
+        int choice;
+        double amount;
+
+        System.out.println("=== Welcome to Simple ATM ===");
+
+        while (true) {
+            System.out.println("\n1. Check Balance");
+            System.out.println("2. Deposit Money");
+            System.out.println("3. Withdraw Money");
+            System.out.println("4. Exit");
+            System.out.print("Enter your choice: ");
+
+            try {
+                choice = sc.nextInt();
+
+                switch (choice) {
+                    case 1:
+                        atm.checkBalance();
+                        break;
+                    case 2:
+                        System.out.print("Enter amount to deposit: ");
+                        amount = sc.nextDouble();
+                        atm.deposit(amount);
+                        break;
+                    case 3:
+                        System.out.print("Enter amount to withdraw: ");
+                        amount = sc.nextDouble();
+                        atm.withdraw(amount);
+                        break;
+                    case 4:
+                        System.out.println("Thank you for using the ATM!");
+                        System.exit(0);
+                    default:
+                        throw new IllegalArgumentException("Invalid menu choice!");
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println("Error: " + e.getMessage());
+            } catch (Exception e) {
+                System.out.println("Invalid input! Please enter valid numbers.");
+                sc.nextLine(); // clear buffer
+            } finally {
+                System.out.println("Operation completed safely.\n");
+            }
+        }
+    }
+}
